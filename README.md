@@ -123,6 +123,8 @@ python tools\smoke.py
 
 MIT. Делайте что хотите, только не говорите, что это ваша Дося.
 
+Хотите помочь — [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ---
 
 <sub>Иконка и баннер тоже генерируются: `python tools/gen_icon.py`.</sub>

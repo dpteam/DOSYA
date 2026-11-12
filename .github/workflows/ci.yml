@@ -36,6 +36,9 @@ jobs:
         # so a failing validator cannot ship a broken level.
         run: python tools/genlevels.py
 
+      - name: Docs links resolve
+        run: python tools/check_links.py
+
   # The real thing: cross-compile a DOS executable.
   dos:
     name: DOS build (DJGPP)
