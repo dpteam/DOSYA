@@ -6,6 +6,7 @@ title -> intro -> play -> death -> level done -> win.
   python tools/screens.py
 """
 import os
+import platform
 import subprocess
 import sys
 import glob
@@ -14,6 +15,9 @@ from PIL import Image
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FRAMES = os.path.join(ROOT, "build", "frames")
 OUT = os.path.join(ROOT, "tools", "screens.png")
+HOST = os.path.join(ROOT, "build",
+                    "dosya_host.exe" if platform.system() == "Windows"
+                    else "dosya_host")
 
 SPACE, ENTER, ESC, P = 0x39, 0x1C, 0x01, 0x19
 LEFT, RIGHT = 0x4B, 0x4D
@@ -52,7 +56,7 @@ def main():
     env["DOSYA_SCRIPT"] = script
     env["DOSYA_DUMP_EVERY"] = "20"
     env["DOSYA_MAX_FRAMES"] = "900"
-    exe = os.path.join(ROOT, "build", "dosya_host.exe")
+    exe = HOST
     subprocess.run([exe], env=env, cwd=ROOT, check=True,
                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 

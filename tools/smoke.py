@@ -8,12 +8,15 @@ to exist -- and it fails loudly if the bot cannot clear all three levels.
 Exit code 0 means: every level was reached, and the win screen was reached.
 """
 import os
+import platform
 import re
 import subprocess
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-EXE = os.path.join(ROOT, "build", "dosya_host.exe")
+EXE = os.path.join(ROOT, "build",
+                   "dosya_host.exe" if platform.system() == "Windows"
+                   else "dosya_host")
 SCRIPT = os.path.join(ROOT, "build", "smoke.txt")
 
 # Scancodes. Two spaces take us from the title through the intro into play.
