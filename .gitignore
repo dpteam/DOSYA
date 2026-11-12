@@ -1,0 +1,48 @@
+# ---- generated build output ------------------------------------------------
+build/
+dist/
+
+# ---- downloaded toolchain and fonts ---------------------------------------
+# vendor/ holds DJGPP (120 MB) and Unifont. tools/setup.py recreates it.
+vendor/
+
+# ---- object files and binaries --------------------------------------------
+*.o
+*.obj
+*.a
+*.exe
+*.EXE
+*.dll
+*.map
+
+# ---- DOS leftovers --------------------------------------------------------
+*.PPM
+*.ppm
+SHOT*.PPM
+DOSYA.LOG
+CWSDPMI.SWP
+
+# ---- python ---------------------------------------------------------------
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# ---- editors and OS -------------------------------------------------------
+.vscode/
+.idea/
+*.swp
+*~
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# ---- local dev scratch ----------------------------------------------------
+# dosbox.conf is committed (it is the documented way to run the game),
+# but personal overrides are not.
+dosbox_local.conf
+*.log
+
+# preview sheets written by tools/frames.py and tools/screens.py
+tools/*.png

@@ -1,0 +1,96 @@
+name: Release
+
+# Tag a commit with v1.0.0 and this builds the DOS binaries and attaches a zip
+# to the GitHub release. No secrets needed: GITHUB_TOKEN is enough.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Pillow
+        run: python -m pip install --upgrade pillow
+
+      - name: Cache DJGPP
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: djgpp-v3.4-gcc1220-linux64-unifont-15.1.05
+
+      - name: Fetch toolchain
+        run: python tools/setup.py
+
+      - name: Build
+        run: python tools/build.py dos
+
+      - name: Smoke test the same code
+        run: |
+          python tools/build.py host
+          python tools/smoke.py
+
+      - name: Assemble the DOS package
+        run: |
+          set -e
+          NAME="dosya-${{ github.ref_name }}"
+          mkdir -p "pkg/$NAME"
+          cp dist/DOSYA.EXE dist/CWSDPMI.EXE "pkg/$NAME/"
+          cp README.md "pkg/$NAME/README.md"
+          cat > "pkg/$NAME/PLAY.txt" <<'EOF'
+          ДОСЯ и автобус
+          ==============
+
+          1. Скопируйте все файлы в одну папку на жёстком диске.
+          2. Запустите DOSYA.EXE
+
+          Управление:
+            Стрелки / A, D  - идти
+            Пробел          - прыжок (держите дольше - прыжок выше)
+            Z / X / Ctrl    - кинуть навоз
+            P               - пауза
+            Esc             - выход
+
+          CWSDPMI.EXE должен лежать рядом с DOSYA.EXE.
+          Без него игра сообщит "no DPMI - Get csdpmi*b.zip".
+
+          Этот файл в UTF-8. В DOS смотрите его через TYPE или в любом
+          редакторе с поддержкой UTF-8.
+          EOF
+          cd pkg
+          zip -r "../$NAME.zip" "$NAME"
+          cd ..
+          ls -la *.zip
+
+      - name: Publish
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dosya-*.zip
+          body: |
+            ## ДОСЯ и автобус
+
+            Платформер для DOS. 320x200x256, Mode 13h, DJGPP.
+
+            **Запуск:** распакуйте архив, запустите `DOSYA.EXE` в DOSBox
+            или на настоящей DOS-машине. `CWSDPMI.EXE` должен лежать рядом.
+
+            ```
+            mount c <папка>
+            c:
+            DOSYA.EXE
+            ```
+
+            Управление: стрелки — идти, пробел — прыжок, Z — навоз, P — пауза.
+          generate_release_notes: true

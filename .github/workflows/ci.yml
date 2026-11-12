@@ -1,0 +1,150 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  PYTHONUNBUFFERED: "1"
+
+jobs:
+  # Fast job: no toolchain download. Proves the game is playable.
+  smoke:
+    name: Playable (host build + autopilot)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Pillow
+        run: python -m pip install --upgrade pillow
+
+      - name: Build host binary
+        run: python tools/build.py host
+
+      - name: Autopilot must clear all three levels
+        run: python tools/smoke.py
+
+      - name: Level validator
+        run: |
+          python tools/genlevels.py
+          # genlevels prints "!!" and exits non-zero on an unfair level
+          if python tools/genlevels.py | grep -q '!!'; then
+            echo "level validation failed"
+            exit 1
+          fi
+
+  # The real thing: cross-compile a DOS executable.
+  dos:
+    name: DOS build (DJGPP)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Pillow
+        run: python -m pip install --upgrade pillow
+
+      - name: Cache DJGPP
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: djgpp-v3.4-gcc1220-linux64-unifont-15.1.05
+
+      - name: Fetch toolchain and font
+        run: python tools/setup.py
+
+      - name: Build DOSYA.EXE
+        run: python tools/build.py dos
+
+      - name: Verify it is a real DOS executable
+        run: |
+          python - <<'PY'
+          import os
+          p = "dist/DOSYA.EXE"
+          assert os.path.exists(p), "DOSYA.EXE was not produced"
+          data = open(p, "rb").read()
+          assert data[:2] == b"MZ", "not an MZ executable"
+          assert len(data) > 100_000, "suspiciously small for a DJGPP build"
+          assert b"go32" in data.lower(), "no DJGPP loader stub found"
+          print("OK: %s, %d bytes, MZ header + go32 stub" % (p, len(data)))
+          PY
+
+      # Actually running the EXE needs DOSBox, which is not on the runner.
+      # The host build runs the same game code and is smoke-tested above;
+      # for the DOS binary itself see docs/building.md ("Self-test").
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DOSYA-DOS
+          path: |
+            dist/DOSYA.EXE
+            dist/CWSDPMI.EXE
+          if-no-files-found: error
+
+  # Generated assets must be reproducible: running the generators twice must
+  # produce byte-identical output, or the art is not really source-controlled.
+  reproducible:
+    name: Assets are reproducible
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Pillow
+        run: python -m pip install --upgrade pillow
+
+      - name: Cache Unifont only (small, needed by genfont)
+        uses: actions/cache@v4
+        with:
+          path: vendor/unifont.hex.gz
+          key: unifont-15.1.05
+
+      - name: Fetch font
+        run: |
+          mkdir -p vendor
+          if [ ! -f vendor/unifont.hex.gz ]; then
+            curl -fsSL -o vendor/unifont.hex.gz \
+              "https://unifoundry.com/pub/unifont/unifont-15.1.05/font-builds/unifont-15.1.05.hex.gz"
+          fi
+
+      - name: Generate twice and compare
+        run: |
+          python tools/genpal.py
+          python tools/art_all.py
+          python tools/gen_tiles.py
+          python tools/genfont.py
+          python tools/genstrings.py
+          python tools/genlevels.py
+          mkdir -p /tmp/first
+          cp -r build/gen /tmp/first/
+          python tools/genpal.py
+          python tools/art_all.py
+          python tools/gen_tiles.py
+          python tools/genfont.py
+          python tools/genstrings.py
+          python tools/genlevels.py
+          diff -r /tmp/first/gen build/gen
+          echo "generated sources are deterministic"
+
+      - name: Icon builds
+        run: |
+          python tools/gen_icon.py
+          python - <<'PY'
+          from PIL import Image
+          for p in ("docs/icon.png", "docs/banner.png"):
+              im = Image.open(p)
+              print(p, im.size, im.mode)
+          assert Image.open("docs/icon.png").size == (512, 512)
+          PY

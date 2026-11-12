@@ -1,0 +1,17 @@
+# Normalise line endings on commit so Windows and Linux checkouts agree.
+# CI runs on Linux; a CRLF in a shell heredoc there is a bad time.
+* text=auto eol=lf
+
+# Batch files must stay CRLF or cmd.exe misparses them.
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+
+# Binary: never touch, never diff.
+*.png   binary
+*.ico   binary
+*.exe   binary
+*.EXE   binary
+*.zip   binary
+*.gz    binary
+*.ppm   binary
+*.PPM   binary
