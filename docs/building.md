@@ -19,6 +19,21 @@ python tools\setup.py
 | Linux | `djgpp-linux64-gcc1220.tar.bz2` |
 | macOS | `djgpp-osx-gcc1220.tar.bz2` |
 
+### Только шрифт
+
+DJGPP нужен только для DOS-сборки. Если вы собираете host-версию (тесты,
+кадры, иконка) — качать 120 МБ незачем:
+
+```powershell
+python tools\setup.py --font     # только GNU Unifont, ~1 МБ
+python tools\build.py host
+```
+
+Более того, шрифт скачается сам при первом запуске `genfont.py`, если его
+нет: `tools/fetch.py` следит за этим. Так что `build.py host` из чистого
+клона работает без `setup.py` вообще. Проверяется на целостность — битая
+или недокачанная загрузка перекачивается, а не роняет сборку.
+
 ## Сборка
 
 ```powershell

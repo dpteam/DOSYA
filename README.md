@@ -2,8 +2,8 @@
 
 # ДОСЯ и автобус
 
-[![CI](https://github.com/DartPower/dosya/actions/workflows/ci.yml/badge.svg)](https://github.com/DartPower/dosya/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/DartPower/dosya?include_prereleases&sort=semver)](https://github.com/DartPower/dosya/releases)
+[![CI](https://github.com/dpteam/DOSYA/actions/workflows/ci.yml/badge.svg)](https://github.com/dpteam/DOSYA/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/dpteam/DOSYA?include_prereleases&sort=semver)](https://github.com/dpteam/DOSYA/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Platform](https://img.shields.io/badge/platform-DOS%20%7C%20DOSBox-lightgrey)
 ![Resolution](https://img.shields.io/badge/resolution-320x200x256-informational)
@@ -23,7 +23,7 @@
 
 ## Скачать и играть
 
-Возьмите `dosya-vX.Y.Z.zip` из [релизов](https://github.com/DartPower/dosya/releases),
+Возьмите `dosya-vX.Y.Z.zip` из [релизов](https://github.com/dpteam/DOSYA/releases),
 распакуйте, запустите `DOSYA.EXE` в DOSBox:
 
 ```ini
@@ -73,9 +73,18 @@ protected mode.
 
 ```powershell
 python -m pip install pillow
-python tools\setup.py         # DJGPP + CWSDPMI + шрифт
+
+# host-сборка: тесты, кадры, иконка. Хватит одного шрифта.
+python tools\setup.py --font
+python tools\build.py host
+
+# DOS-сборка: нужен DJGPP (~120 МБ)
+python tools\setup.py
 python tools\build.py dos     # -> dist\DOSYA.EXE
 ```
+
+Шрифт вообще скачается сам при первой сборке — `tools/fetch.py` его
+подтягивает и проверяет целостность.
 
 Подробности: [docs/building.md](docs/building.md).
 

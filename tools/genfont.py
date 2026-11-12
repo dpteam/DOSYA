@@ -3,19 +3,25 @@
 Unifont ships a .hex file: "<codepoint>:<hex rows>". We pull the 8-pixel-wide
 glyphs for every character in the CP866 codepage (that is what a Russian DOS
 game in 1993 would have had) and emit a 256*16 byte table.
+
+The Unifont dump is ~1 MB and is not in git; tools/fetch.py downloads it on
+demand, so a clean clone can build without running setup.py first.
 """
 import gzip
 import os
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import fetch  # noqa: E402
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-HEX = os.path.join(ROOT, "vendor", "unifont.hex.gz")
 OUT = os.path.join(ROOT, "build", "gen", "font.c")
 
 
 def load_unifont():
     glyphs = {}
-    with gzip.open(HEX, "rt", encoding="utf-8") as f:
+    path = fetch.ensure_unifont()
+    with gzip.open(path, "rt", encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if not line:
