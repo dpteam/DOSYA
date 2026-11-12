@@ -43,36 +43,10 @@ jobs:
           python tools/smoke.py
 
       - name: Assemble the DOS package
-        run: |
-          set -e
-          NAME="dosya-${{ github.ref_name }}"
-          mkdir -p "pkg/$NAME"
-          cp dist/DOSYA.EXE dist/CWSDPMI.EXE "pkg/$NAME/"
-          cp README.md "pkg/$NAME/README.md"
-          cat > "pkg/$NAME/PLAY.txt" <<'EOF'
-          ДОСЯ и автобус
-          ==============
+        run: python tools/package.py "${{ github.ref_name }}"
 
-          1. Скопируйте все файлы в одну папку на жёстком диске.
-          2. Запустите DOSYA.EXE
-
-          Управление:
-            Стрелки / A, D  - идти
-            Пробел          - прыжок (держите дольше - прыжок выше)
-            Z / X / Ctrl    - кинуть навоз
-            P               - пауза
-            Esc             - выход
-
-          CWSDPMI.EXE должен лежать рядом с DOSYA.EXE.
-          Без него игра сообщит "no DPMI - Get csdpmi*b.zip".
-
-          Этот файл в UTF-8. В DOS смотрите его через TYPE или в любом
-          редакторе с поддержкой UTF-8.
-          EOF
-          cd pkg
-          zip -r "../$NAME.zip" "$NAME"
-          cd ..
-          ls -la *.zip
+      - name: Show what will be published
+        run: ls -la dosya-*.zip
 
       - name: Publish
         uses: softprops/action-gh-release@v3
