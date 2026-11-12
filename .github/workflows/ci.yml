@@ -31,13 +31,10 @@ jobs:
         run: python tools/smoke.py
 
       - name: Level validator
-        run: |
-          python tools/genlevels.py
-          # genlevels prints "!!" and exits non-zero on an unfair level
-          if python tools/genlevels.py | grep -q '!!'; then
-            echo "level validation failed"
-            exit 1
-          fi
+        # genlevels.py relocates enemies that sit too close to a pit and exits
+        # non-zero if any level is still unfair. It also regenerates levels.c,
+        # so a failing validator cannot ship a broken level.
+        run: python tools/genlevels.py
 
   # The real thing: cross-compile a DOS executable.
   dos:
