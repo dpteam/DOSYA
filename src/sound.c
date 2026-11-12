@@ -3,18 +3,22 @@
    Square waves through the PC speaker, driven by PIT channel 2. It sounds
    like a fridge with opinions, which is exactly the era we are imitating.
    =========================================================================== */
-#include <dos.h>
-
 #include "sound.h"
 #include "video.h"
 
 #ifdef DOSYA_HOST
+/* No hardware, no sound. The host build exists to test logic, not to buzz. */
 void snd_init(void) {}
 void snd_done(void) {}
 void snd_play(int id) { (void)id; }
 void snd_tick(unsigned long now_ms) { (void)now_ms; }
 void snd_off(void) {}
 #else
+
+/* <dos.h> lives here, not at the top of the file: MinGW quietly provides a
+   stub header so an unconditional include builds on Windows, but a Linux
+   host has no <dos.h> at all and the host build dies. Ask me how I know. */
+#include <dos.h>
 
 #define SPK_PORT  0x61
 #define PIT2_CMD  0x43
